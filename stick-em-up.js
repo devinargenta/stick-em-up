@@ -67,18 +67,21 @@
       });
     },
     setFixed: function(el, options, spacer) {
-      var $body = $('body');
+      var $body = $('body'),
+          elHeight = $(el).height();
       $body.addClass(options.fixedClass);
       $body.addClass(options.outClass);
       if ($body.hasClass(options.inClass)) {
         $body.removeClass(options.inClass);
       }
       if (options.autoMove) {
-        spacer.css({height: $(el).height()});
+        spacer.css({
+          height: elHeight()
+        });
         $(el).css({
           'position': 'fixed',
-          'transform': 'translateY(-100px)',
-          '-webkit-transform': 'translateY(-100px)'
+          'transform': 'translateY('+elHeight * -2+'px)',
+          '-webkit-transform': 'translateY('+elHeight * -2+'px)'
         });
       }
     },
