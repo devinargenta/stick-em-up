@@ -76,7 +76,7 @@
       }
       if (options.autoMove) {
         spacer.css({
-          height: elHeight()
+          height: elHeight
         });
         $(el).css({
           'position': 'fixed',
