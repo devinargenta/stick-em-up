@@ -4,7 +4,7 @@
   var pluginName = "stickEmUp",
     defaults = {
       autoMove: true,
-      offset: 0,
+      offset: 150,
       fixedClass: 'stickEm-fixed',
       inClass: 'stickEm-in',
       outClass: 'stickEm-out',
@@ -47,12 +47,14 @@
         _ = this;
       $(window).on("scroll", function(e) {
         var top = $(this).scrollTop();
-        console.log(top);
         // if we're going down, and we've gone past element top + offset
         // add a class and set the element to fixed (if automove)
-        if (top > prevTop && top > elTop + offset) {
-          _.setFixed(_.element, _.options, spacer);
-          // if we're going up && we've gone higher up than the element top + offset
+        if (top > prevTop && top > elTop) {
+          _.setFixed(_.element, _.options, spacer, offset);
+        if (top > elTop + offset) {
+              _.animateOut(_.element, _.options, offset);
+          }
+          // if we're going up && we've gone higher up than the element top
           // we must reset, to translate 0 & position relative;
         } else if (top < elTop && top < prevTop) {
           _.reset(_.element, _.options, spacer);
@@ -66,7 +68,7 @@
         prevTop = top;
       });
     },
-    setFixed: function(el, options, spacer) {
+    setFixed: function(el, options, spacer, offset) {
       var $body = $('body'),
           elHeight = $(el).height();
       $body.addClass(options.fixedClass);
@@ -80,10 +82,16 @@
         });
         $(el).css({
           'position': 'fixed',
-          'transform': 'translateY('+elHeight * -2+'px)',
-          '-webkit-transform': 'translateY('+elHeight * -2+'px)'
+          'top': 0
         });
       }
+    },
+    animateOut: function(el, options, offset){
+      var elHeight = $(el).height();
+     $(el).css({
+      'transform': 'translateY('+elHeight * -2+'px)',
+      '-webkit-transform': 'translateY('+elHeight * -2+'px)'
+      });
     },
     reset: function(el, options, spacer) {
       var $body = $('body');
@@ -92,7 +100,7 @@
         this.slideIn(el, options);
         spacer.css({height: 0});
         $(el).css({
-          'position': 'relative'
+          'position': 'initial'
         });
       }
     },
@@ -104,7 +112,7 @@
       }
       if (options.autoMove) {
         $(el).css({
-          'transform': 'translateY(0px)',
+          'transform': 'translateY(0)',
           '-webkit-transform': 'translateY(0)'
         });
       }
