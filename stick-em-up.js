@@ -4,7 +4,7 @@
   var pluginName = "stickEmUp",
     defaults = {
       autoMove: true,
-      offset: 150,
+      offset: 0,
       fixedClass: 'stickEm-fixed',
       inClass: 'stickEm-in',
       outClass: 'stickEm-out',
