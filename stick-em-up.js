@@ -1,10 +1,11 @@
-;(function($, window, document, undefined) {
+;
+(function($, window, document, undefined) {
   "use strict";
 
   var pluginName = "stickEmUp",
     defaults = {
       autoMove: true,
-      offset: 0,
+      offset: 150,
       fixedClass: 'stickEm-fixed',
       inClass: 'stickEm-in',
       outClass: 'stickEm-out',
@@ -27,120 +28,135 @@
       var header = this.element,
         $body = $('body'),
         autoMove = this.options.autoMove,
-        spacer,
+        options = this.options,
         elTop = $(header).offset().top;
 
-      if (autoMove) {
+      this.elTop = elTop;
+      this.buildCache();
+      this.down();
+      this.up();
 
+      if (autoMove) {
         $(header).css({
-          'transition': '' + this.options.duration + ' all ' + this.options.delay + ' ease-in-out',
+          'transition': '' + options.duration + ' transform ' + options.delay + ' ease-in-out',
           '-webkit-overflow-scrolling': 'touch'
         });
         $(header).before('<div class="blurry-spacer"></div>');
-        spacer = $('.blurry-spacer');
+        this.spacer = '.blurry-spacer';
+        this.$spacer = $('.blurry-spacer');
       }
 
-      this.scrollEvent(this.element, this.options, elTop, spacer);
+      this.scrollEvent();
 
     },
-    scrollEvent: function(el, options, elTop, spacer) {
 
+    buildCache: function() {
+      this.$element = $(this.element);
+      this.$body = $('body');
+
+    },
+
+    scrollEvent: function() {
       var prevTop = 0,
-          offset = options.offset,
-          _ = this;
-
+        offset = this.options.offset,
+        elTop = this.elTop,
+        _ = this;
       $(window).on("scroll", function(e) {
-
         var top = $(this).scrollTop();
-        // if we're going down, and we've gone past element top + offset
-        // add a class and set the element to fixed (if automove)
-        if (top > prevTop && top > elTop) {
 
-           _.setFixed(_.element, _.options, spacer, offset);
+        if (top > prevTop && top > elTop && $('body').data('direction') !== 'down') {
 
-          if (top > elTop + offset) {
+          _.$body.trigger('GOING_DOWN');
 
-            _.animateOut(_.element, _.options, offset);
+        } else if (_.options.autoMove && top > prevTop && top > elTop + offset) {
 
-          }
-          // if we're going up && we've gone higher up than the element top
-          // we must reset, to translate 0 & position relative;
-        } else if (top < elTop && top < prevTop) {
+          _.animateOut();
 
-          _.reset(_.element, _.options, spacer);
+        } else if (top < elTop && top < prevTop || top < elTop && $('body').data('direction') !== 'up') {
+          _.$body.trigger('GOING_UP');
 
-          //if we're too close to the fixing point, fix it
-        } else if (top < elTop) {
-
-          _.reset(_.element, _.options, spacer);
-
-          // if wer'e goign up slide the top in
         } else if (top < prevTop) {
-
-          _.slideIn(_.element, _.options);
-
+          _.slideIn();
         }
 
         prevTop = top;
 
       });
     },
-    setFixed: function(el, options, spacer, offset) {
-      var $body = $('body'),
-          elHeight = $(el).height();
-      $body.addClass(options.fixedClass);
+    down: function() {
+      var _ = this;
+      this.$body.on('GOING_DOWN', function(top, offset) {
+        _.$body.data('direction', 'down');
+        _.setFixed();
+      });
+    },
+    up: function() {
+      var _ = this;
+      this.$body.on('GOING_UP', function() {
+        _.$body.data('direction', 'up');
+        _.reset();
+      });
+    },
+    setFixed: function() {
+      var _ = this,
+        elHeight = this.$element.height();
+      this.$body.addClass(this.options.fixedClass);
 
-      if ($body.hasClass(options.inClass)) {
-        $body.removeClass(options.inClass);
+      if (this.$body.hasClass(this.options.inClass)) {
+        this.$body.removeClass(this.options.inClass);
       }
-      if (options.autoMove) {
-
-        spacer.css({
+      if (this.options.autoMove) {
+        this.$spacer.css({
           height: elHeight
         });
-        $(el).css({
+        this.$element.css({
           'position': 'fixed',
           'top': 0
         });
       }
     },
-    animateOut: function(el, options, offset) {
-      var elHeight = $(el).height(),
-          $body = $('body');
-      $body.addClass(options.outClass);
-      if (options.autoMove){
-        $(el).css({
+    animateOut: function(i) {
+      var _ = this,
+        _o = _.options,
+        elHeight = _.$element.height();
+      _.$body.addClass(_o.outClass);
+
+      if (_o.autoMove) {
+        _.$element.css({
           'transform': 'translateY(' + elHeight * -2 + 'px)',
           '-webkit-transform': 'translateY(' + elHeight * -2 + 'px)'
         });
       }
     },
-    reset: function(el, options, spacer) {
-      var $body = $('body');
-      $body.removeClass(options.fixedClass);
-      if (options.autoMove) {
-        this.slideIn(el, options);
-        spacer.css({
+    reset: function() {
+      var _ = this,
+        _o = _.options;
+      _.$body.removeClass(_o.fixedClass);
+      if (_o.autoMove) {
+        _.slideIn();
+        _.$spacer.css({
           height: 0
         });
-        $(el).css({
+        _.$element.css({
           'position': 'initial'
         });
       }
     },
-    slideIn: function(el, options) {
-      var $body = $('body');
-      $body.addClass(options.inClass);
-      if ($body.hasClass(options.outClass)) {
-        $body.removeClass(options.outClass);
+    slideIn: function() {
+      var _ = this,
+        _o = _.options;
+      this.$body.addClass(_o.inClass);
+      if (this.$body.hasClass(_o.outClass)) {
+        this.$body.removeClass(_o.outClass);
       }
-      if (options.autoMove) {
-        $(el).css({
+      if (_o.autoMove) {
+        this.$element.css({
           'transform': 'translateY(0)',
           '-webkit-transform': 'translateY(0)'
         });
       }
     }
+
   });
   // A really lightweight plugin wrapper around the constructor,
   // preventing against multiple instantiations
