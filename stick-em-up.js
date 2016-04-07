@@ -41,9 +41,9 @@
           'transition': '' + options.duration + ' transform ' + options.delay + ' ease-in-out',
           '-webkit-overflow-scrolling': 'touch'
         });
-        $(header).before('<div class="blurry-spacer"></div>');
-        this.spacer = '.blurry-spacer';
-        this.$spacer = $('.blurry-spacer');
+        $(header).before('<div class="sticky-spacer"></div>');
+        this.spacer = '.sticky-spacer';
+        this.$spacer = $('.sticky-spacer');
       }
 
       this.scrollEvent();
