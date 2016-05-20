@@ -29,7 +29,7 @@
         $body = $('body'),
         autoMove = this.options.autoMove,
         options = this.options,
-        elTop = $(header).offset().top;
+        elTop = { val: $(header).offset().top };
 
       this.elTop = elTop;
       this.buildCache();
@@ -46,6 +46,8 @@
         this.$spacer = $('.sticky-spacer');
       }
 
+      $(window).on('resize load', this.checkSize.bind(this));
+
       this.scrollEvent();
 
     },
@@ -56,10 +58,34 @@
 
     },
 
+    checkSize: function checkSize() {
+
+          var _ = this;
+
+          var debounced = _.debounce(function () {
+              _.elTop.val = $(_.element).offset().top;
+          }, 250);
+
+          debounced();
+    },
+     debounce:  function(func, wait, immediate) {
+        	var timeout;
+        	return function() {
+        		var context = this, args = arguments;
+        		var later = function() {
+        			timeout = null;
+        			if (!immediate) func.apply(context, args);
+        		};
+        		var callNow = immediate && !timeout;
+        		clearTimeout(timeout);
+        		timeout = setTimeout(later, wait);
+        		if (callNow) func.apply(context, args);
+        	};
+    },
     scrollEvent: function() {
       var prevTop = 0,
         offset = this.options.offset,
-        elTop = this.elTop,
+        elTop = this.elTop.val,
         _ = this;
       $(window).on("scroll", function(e) {
         var top = $(this).scrollTop();
@@ -72,7 +98,7 @@
 
           _.animateOut();
 
-        } else if (top < elTop && top < prevTop || top < elTop && $('body').data('direction') !== 'up') {
+        } else if (top <= elTop && top < prevTop || top <= elTop && $('body').data('direction') !== 'up') {
           _.$body.trigger('GOING_UP');
 
         } else if (top < prevTop) {
@@ -119,6 +145,7 @@
       var _ = this,
         _o = _.options,
         elHeight = _.$element.height();
+      _.$body.removeClass(_o.inClass);
       _.$body.addClass(_o.outClass);
 
       if (_o.autoMove) {
@@ -132,6 +159,9 @@
       var _ = this,
         _o = _.options;
       _.$body.removeClass(_o.fixedClass);
+      if (this.$body.hasClass(this.options.inClass)) {
+        this.$body.removeClass(this.options.inClass);
+      }
       if (_o.autoMove) {
         _.slideIn();
         _.$spacer.css({
