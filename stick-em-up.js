@@ -29,9 +29,13 @@
         $body = $('body'),
         autoMove = this.options.autoMove,
         options = this.options,
-        elTop = { val: $(header).offset().top };
+        _ = this,
+        offsetTop = {
+          val: $(header).offset().top
+        };
 
-      this.elTop = elTop;
+      this.prevTop = 0;
+      this.elTop = offsetTop.val;
       this.buildCache();
       this.down();
       this.up();
@@ -46,9 +50,16 @@
         this.$spacer = $('.sticky-spacer');
       }
 
-      $(window).on('resize load', this.checkSize.bind(this));
+      $(window).on('resize load', this.checkSize.bind(_));
 
-      this.scrollEvent();
+      $(window).on('scroll', function() {
+        var top = $(window).scrollTop();
+
+        this.requestAnimationFrame(
+          _.scrollEvent.bind(_, top)
+        );
+
+      });
 
     },
 
@@ -60,54 +71,53 @@
 
     checkSize: function checkSize() {
 
-          var _ = this;
+      var _ = this;
 
-          var debounced = _.debounce(function () {
-              _.elTop.val = $(_.element).offset().top;
-          }, 250);
+      var debounced = _.debounce(function() {
+        _.elTop = $(_.element).offset().top;
+      }, 250);
 
-          debounced();
+      debounced();
     },
-     debounce:  function(func, wait, immediate) {
-        	var timeout;
-        	return function() {
-        		var context = this, args = arguments;
-        		var later = function() {
-        			timeout = null;
-        			if (!immediate) func.apply(context, args);
-        		};
-        		var callNow = immediate && !timeout;
-        		clearTimeout(timeout);
-        		timeout = setTimeout(later, wait);
-        		if (callNow) func.apply(context, args);
-        	};
+    debounce: function(func, wait, immediate) {
+      var timeout;
+      return function() {
+        var context = this,
+          args = arguments;
+        var later = function() {
+          timeout = null;
+          if (!immediate) func.apply(context, args);
+        };
+        var callNow = immediate && !timeout;
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+        if (callNow) func.apply(context, args);
+      };
     },
-    scrollEvent: function() {
-      var prevTop = 0,
-        offset = this.options.offset,
-        elTop = this.elTop.val,
+    scrollEvent: function(top) {
+      var offset = this.options.offset,
+        elTop = this.elTop,
+        prevTop = this.prevTop,
         _ = this;
-      $(window).on("scroll", function(e) {
-        var top = $(this).scrollTop();
 
-        if (top > prevTop && top > elTop && $('body').data('direction') !== 'down') {
 
-          _.$body.trigger('GOING_DOWN');
+      if (top > prevTop && top > elTop && $('body').data('direction') !== 'down') {
 
-        } else if (_.options.autoMove && top > prevTop && top > elTop + offset) {
+        _.$body.trigger('GOING_DOWN');
 
-          _.animateOut();
+      } else if (_.options.autoMove && top > prevTop && top > elTop + offset) {
 
-        } else if (top <= elTop && top < prevTop || top <= elTop && $('body').data('direction') !== 'up') {
-          _.$body.trigger('GOING_UP');
+        _.animateOut();
 
-        } else if (top < prevTop) {
-          _.slideIn();
-        }
+      } else if (top <= elTop && top < prevTop || top <= elTop && $('body').data('direction') !== 'up') {
+        _.$body.trigger('GOING_UP');
 
-        prevTop = top;
+      } else if (top < prevTop) {
+        _.slideIn();
+      }
 
-      });
+      _.prevTop = top;
+
     },
     down: function() {
       var _ = this;
