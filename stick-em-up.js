@@ -105,7 +105,7 @@
 
         _.$body.trigger('GOING_DOWN');
 
-      } else if (_.options.autoMove && top > prevTop && top > elTop + offset) {
+      } else if (top > prevTop && top > elTop + offset) {
 
         _.animateOut();
 
